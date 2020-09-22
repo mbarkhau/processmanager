@@ -21,10 +21,10 @@
 
 
 import enum
-import freezehelper
 
 from typing import Callable
 from . import notificationtypes
+from . import freezehelper
 
 
 def require_worker_context():

@@ -60,16 +60,16 @@ total result count: 126324, file count: 2, total time: 14.148742914199829 second
 """
 
 import concurrent.futures
-import freezehelper
-import logcontrol
 import multiprocessing
 import os
-import processmanager
+import io
 import sys
 import time
 
 from typing import Dict, List
 
+import processmanager
+from processmanager import freezehelper
 
 LOG_DIR = os.path.join(freezehelper.executable_dir, "logs")
 MAIN_LOG_PATH = os.path.join(LOG_DIR, "example_log.txt")
@@ -78,10 +78,8 @@ WORKER_LOG_DIR = os.path.join(LOG_DIR, "workers")
 
 if freezehelper.is_child_process():
     # Worker processes can get each get a unique log file when set in this way (outside of the __main__ check)
-    logcontrol.set_log_file(os.path.join(WORKER_LOG_DIR, f"{os.getpid()}_log.txt"), roll_count=0)
     print(f"{os.getpid()} (child process)")
 else:
-    logcontrol.set_log_file(MAIN_LOG_PATH)
     print(f"{os.getpid()} (parent process)")
 
 
@@ -101,7 +99,7 @@ def lines_containing_string_in_file(
     """
     matching_lines = []
 
-    with open(filepath, mode="r", encoding=encoding, errors=errors) as file_handle:
+    with io.open(filepath, mode="r", encoding=encoding, errors=errors) as file_handle:
         for line in file_handle:
             if search_string in line:
                 matching_lines.append(line)

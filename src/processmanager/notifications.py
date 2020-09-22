@@ -20,13 +20,18 @@
 """Module for handling of notifications from main process to worker processes"""
 
 import enum
-import logcontrol
 import logging
 import os
 import queue
 import threading
 
 from typing import Callable, Dict, Optional
+
+try:
+    import logcontrol
+except ImportError:
+    logcontrol = None
+
 from . import workerglobals
 from . import globalvars
 from . import notificationtypes
@@ -256,7 +261,7 @@ def handle_notification(message: enum.IntEnum):
         new_go_value = bool(message.value)
         globalvars.current_state.update(new_go_value)
         logger.info(f"handled state update, new go value is {new_go_value}")
-    elif isinstance(message, notificationtypes.LogLevelNotification):
+    elif logcontrol and isinstance(message, notificationtypes.LogLevelNotification):
         # Uses logcontrol as it will make sure the root logger gets the new value (and keep the LoggerGroup synced)
         # It is recommended to use it, but you can also just use custom notifications if you do not want to.
         logcontrol.set_level(message.value)

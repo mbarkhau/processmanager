@@ -19,13 +19,14 @@
 
 """Module for small helper functions"""
 
-import freezehelper
-import logging
 import os
+import logging
+import multiprocessing
 
 from typing import Optional
 from . import globalvars
 from . import mainprocessglobals
+from . import freezehelper
 
 
 logger = logging.getLogger(__name__)
@@ -41,10 +42,10 @@ def current_process_count() -> int:
 
 def get_cpu_count():
     """Get the number of CPUs available to the current process"""
-    if freezehelper.is_linux:
+    if hasattr(os, 'sched_getaffinity') and freezehelper.is_linux:
         return len(os.sched_getaffinity(0)) or 1
     else:
-        return os.cpu_count() or 1
+        return multiprocessing.cpu_count() or 1
 
 
 def get_best_process_count(requested_count: int) -> int:

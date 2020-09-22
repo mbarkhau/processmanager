@@ -21,9 +21,8 @@
 
 import concurrent.futures
 import logging
-import multiprocessing
-import queue
 import threading
+import multiprocessing as mp
 
 from typing import Dict, List, Optional
 from . import globalvars
@@ -42,13 +41,13 @@ loaded = False
 loaded_event = threading.Event()
 
 # a multiprocessing manager allows simple creation of shared synchronized objects
-manager: Optional[multiprocessing.Manager] = None
+manager: Optional[mp.Manager] = None
 
 # Queue used for notification requests from other parts of the main process
-notification_queue: Optional[queue.Queue] = None
+notification_queue: Optional[mp.Queue] = None
 
 # Queues used by the main process to send notifications to each worker process
-notification_queues: List[multiprocessing.Queue] = []
+notification_queues: List[mp.Queue] = []
 
 # Whether or not offload to worker processed is enabled
 offload_enabled = False
@@ -60,10 +59,10 @@ offload_force_disabled = False
 offload_handler: Optional[concurrent.futures.ThreadPoolExecutor] = None
 
 # A list of all worker process instances
-process_list: List[multiprocessing.Process] = []
+process_list: List[mp.Process] = []
 
 # A map of PID to worker process instance
-process_map: Dict[int, multiprocessing.Process] = {}
+process_map: Dict[int, mp.Process] = {}
 
 # Indicates that start_workers has been called
 start_called = False
@@ -72,7 +71,7 @@ start_called = False
 stop_called = False
 
 # Queue for functions in the main process to submit work requests
-submission_queue: Optional[queue.Queue] = None
+submission_queue: Optional[mp.Queue] = None
 
 
 def disable_fail_open():
@@ -131,7 +130,7 @@ def initialize_globals(process_count: int):
             raise RuntimeError("duplicate call to initialize_globals")
 
         global manager, notification_queue, offload_handler, submission_queue
-        manager = multiprocessing.Manager()
+        manager = mp.Manager()
 
         shared_dict = manager.dict()
         shared_dict["cross_process_lock"] = manager.RLock()
@@ -139,15 +138,15 @@ def initialize_globals(process_count: int):
         shared_dict["queues_ready_event"] = manager.Event()
         shared_dict["test_success"] = manager.list()
 
-        notification_queue = queue.Queue(process_count + 1)
+        notification_queue = mp.Queue(process_count + 1)
 
         offload_handler = concurrent.futures.ThreadPoolExecutor(
             max_workers=process_count + 1, thread_name_prefix="offload"
         )
 
-        submission_queue = queue.Queue(process_count + 2)
+        submission_queue = mp.Queue(process_count + 2)
 
-        work_queue = multiprocessing.Queue(process_count + 2)
+        work_queue = mp.Queue(process_count + 2)
 
         globalvars.set_globals(shared_dict, work_queue)
 
