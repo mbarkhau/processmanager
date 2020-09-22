@@ -3,6 +3,7 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+package_dir = {"": "src"}
 setuptools.setup(
     name="processmanager",
     version="0.1.1",
@@ -20,7 +21,8 @@ setuptools.setup(
         "Code and Issues": "https://github.com/brandonmpace/processmanager",
         "Documentation": "https://processmanager.readthedocs.io"
     },
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages("src"),
+    package_dir=package_dir,
     classifiers=[
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
